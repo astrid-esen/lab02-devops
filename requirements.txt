@@ -1,0 +1,2 @@
+fastapi[standard]==0.141.1
+google-cloud-firestore==2.30.0
