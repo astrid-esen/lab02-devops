@@ -34,7 +34,7 @@ La API queda disponible en `http://localhost:8080` y la documentación interacti
 ## Validaciones locales
 
 ```bash
-ruff check .
+python -m ruff check .
 python -m pytest
 ```
 
