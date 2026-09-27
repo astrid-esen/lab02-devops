@@ -21,10 +21,11 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 ### 19.2 Fallo de lint
 
-- Enlace a la ejecución: <link https://github.com/astrid-esen/lab02-devops/pull/3>
-- Cambio que provocó el fallo: <el cambio qu >
-- Evidencia de que `Container` no se ejecutó: <link al run mostrando el job en "skipped">
-- Evidencia de que el merge quedó bloqueado: <link al PR mostrando el check requerido en rojo / merge deshabilitado>
+- Enlace a la ejecución: https://github.com/astrid-esen/lab02-devops/pull/3
+- Cambio que provocó el fallo: el cambio que provoco el fallo fue agregar una variable que no se ocupaba en el archivo de main.py.
+  https://github.com/astrid-esen/lab02-devops/actions/runs/36290134183/job/108538505736?pr=3
+- Evidencia de que `Container` no se ejecutó: (https://github.com/astrid-esen/lab02-devops/actions/runs/36290134183/job/108538568047?pr=3)
+- Evidencia de que el merge quedó bloqueado: (https://github.com/astrid-esen/lab02-devops/pull/3)
 
 ### 19.3 Fallo de pruebas
 
@@ -35,9 +36,9 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 ### 19.4 Ejecución satisfactoria
 
-- Enlace a la ejecución con los tres jobs satisfactorios: <link>
-- Enlace al pull request utilizado para integrar el laboratorio: <link>
-- SHA del commit final evaluado: <sha>
+- Enlace a la ejecución con los tres jobs satisfactorios: (https://github.com/astrid-esen/lab02-devops/pull/3/checks)
+- Enlace al pull request utilizado para integrar el laboratorio: (https://github.com/astrid-esen/lab02-devops/pull/3)
+- SHA del commit final evaluado: 5fcce06333ba8d653089f3393d7d4a7942ee0275
 
 ### 19.5 Artifact
 
