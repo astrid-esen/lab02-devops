@@ -36,7 +36,7 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 ### 19.4 Ejecución satisfactoria
 
-- Enlace a la ejecución con los tres jobs satisfactorios: <link https://github.com/astrid-esen/lab02-devops/pull/3/checks>
+- Enlace a la ejecución con los tres jobs satisfactorios: <link https://github.com/astrid-esen/lab02-devops/actions/runs/36294002015>
 - Enlace al pull request utilizado para integrar el laboratorio: <link https://github.com/astrid-esen/lab02-devops/pull/3>
 - SHA del commit final evaluado: 5fcce06333ba8d653089f3393d7d4a7942ee0275
 
