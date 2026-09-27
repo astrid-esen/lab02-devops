@@ -8,8 +8,6 @@ app = FastAPI(
     description="API base para los laboratorios de CI/CD del curso DevOps.",
 )
 
-variable_sin_usar = "Esta variable no se usa en el código, pero sirve para probar GitHub Actions."
-
 @app.get("/health", tags=["system"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
