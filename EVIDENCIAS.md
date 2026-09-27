@@ -38,7 +38,7 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 - Enlace a la ejecución con los tres jobs satisfactorios: <link https://github.com/astrid-esen/lab02-devops/actions/runs/36294002015>
 - Enlace al pull request utilizado para integrar el laboratorio: <link https://github.com/astrid-esen/lab02-devops/pull/3>
-- SHA del commit final evaluado: 9629f39df9388ac2f191c3eb91f343bb9653e485
+- SHA del commit final evaluado: fab9c9f322811b8ed2e3fa186401d045ee98c98b
 
 ### 19.5 Artifact
 - **Identificación:** El reporte de cobertura en formato XML fue configurado para conservarse como un workflow artifact. 
