@@ -8,7 +8,6 @@ app = FastAPI(
     description="API base para los laboratorios de CI/CD del curso DevOps.",
 )
 
-
 @app.get("/health", tags=["system"])
 def health() -> dict[str, str]:
     return {"status": "ok"}
