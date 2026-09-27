@@ -41,9 +41,8 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 - SHA del commit final evaluado: 5fcce06333ba8d653089f3393d7d4a7942ee0275
 
 ### 19.5 Artifact
-
-- Artifact generado por el job `Test`: `coverage-report` (contiene `coverage.xml`)
-- Enlace al run donde se puede descargar: <link>
+- **Identificación:** El reporte de cobertura en formato XML fue configurado para conservarse como un workflow artifact. 
+- **Evidencia:** Se generó el artefacto con el nombre `coverage-report` (que contiene el archivo `coverage.xml`). Este se puede visualizar y descargar desde la sección "Artifacts" en el resumen de cualquier ejecución exitosa del pipeline en GitHub Actions. <link https://github.com/astrid-esen/lab02-devops/actions/runs/36289348274>
 
 ### 19.6 Caché
 
