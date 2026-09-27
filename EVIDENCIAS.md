@@ -46,7 +46,7 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 ### 19.6 Caché
 
-- Enlace a una ejecución donde se observa reutilización de caché: <link https://github.com/astrid-esen/lab02-devops/actions/caches>
+- Enlace a una ejecución donde se observa reutilización de caché: <link https://github.com/astrid-esen/lab02-devops/actions/runs/36294002015/job/108549336594>
 - Qué cambio invalida la caché: la clave de caché está atada al hash de
   `requirements.txt` y `requirements-dev.txt` (`cache-dependency-path`). Modificar
   cualquiera de esos dos archivos (agregar, quitar o cambiar de versión una
