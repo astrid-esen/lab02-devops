@@ -28,10 +28,10 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 ### 19.3 Fallo de pruebas
 
-- Enlace a la ejecución: <link al run de Actions>
-- Cambio que provocó el fallo: <describir, ej. test temporal con assert False>
-- Evidencia de que `Container` no se ejecutó: <link al run mostrando el job en "skipped">
-- Evidencia de que el merge quedó bloqueado: <link al PR mostrando el check requerido en rojo / merge deshabilitado>
+- Enlace a la ejecución: <link https://github.com/astrid-esen/lab02-devops/pull/3>
+- Cambio que provocó el fallo: se agregó temporalmente assert 1 == 2 dentro del archivo test/test_temporal.py
+- Evidencia de que `Container` no se ejecutó: <link https://github.com/astrid-esen/lab02-devops/actions/runs/36291366211/job/108541964579?pr=3>
+- Evidencia de que el merge quedó bloqueado: <link https://github.com/astrid-esen/lab02-devops/actions/runs/36291366211/job/108541964579?pr=3>
 
 ### 19.4 Ejecución satisfactoria
 
