@@ -51,3 +51,90 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
   `requirements.txt` y `requirements-dev.txt` (`cache-dependency-path`). Modificar
   cualquiera de esos dos archivos (agregar, quitar o cambiar de versión una
   dependencia) genera una nueva clave y fuerza a reconstruir la caché.
+
+## Laboratorio 3. Entrega continua y despliegue en la nube
+
+### 14.1 Preparación del entorno
+
+- **ID del proyecto GCP:** `lab03-devops`
+- **Captura del presupuesto USD 1**
+![captura del presupuesto](image.png)
+- **Service accounts creadas** (`gcloud iam service-accounts list --project=lab03-devops`):
+
+  ```
+  EMAIL                                                      DISABLED
+  gha-deployer@lab03-devops.iam.gserviceaccount.com          False
+  gha-publisher@lab03-devops.iam.gserviceaccount.com         False
+  incident-api-runtime@lab03-devops.iam.gserviceaccount.com  False
+  ```
+
+- **Cleanup policy en Artifact Registry** (`devops-images`, `gcloud artifacts repositories list-cleanup-policies`):
+
+  ```json
+  [
+    {
+      "action": {"type": "DELETE"},
+      "condition": {"olderThan": "259200s", "tagState": "ANY"},
+      "name": "delete-old-versions"
+    },
+    {
+      "action": {"type": "KEEP"},
+      "condition": {"tagPrefixes": ["baseline"], "tagState": "TAGGED"},
+      "name": "keep-baseline"
+    },
+    {
+      "action": {"type": "KEEP"},
+      "mostRecentVersions": {"keepCount": 3},
+      "name": "keep-recent"
+    }
+  ]
+  ```
+
+- **Revisión inicial `incident-api-baseline`**: desplegada y activa en el servicio `incident-api` (`us-central1`), con `incident-api-runtime` como identidad de ejecución y `STORAGE_BACKEND=firestore`.
+- **Verificación inicial `/health` e `/incidents`** contra la URL principal (`https://incident-api-wr62lcvkua-uc.a.run.app`):
+
+  ```
+  GET /health     -> {"status":"ok"}
+  GET /incidents  -> []
+  ```
+
+### 14.2 Publicación
+
+- **Enlace a la ejecución de GitHub Actions:** <https://github.com/astrid-esen/lab02-devops/actions/runs/36606113143>
+- **SHA del commit:** `746934f71ea784a2fb275df2be66e8448247c128`
+- **Tag utilizado en Artifact Registry:** `746934f71ea784a2fb275df2be66e8448247c128` (SHA completo del commit, sin usar `latest`)
+- **Referencia completa de la imagen:** `us-central1-docker.pkg.dev/lab03-devops/devops-images/incident-api:746934f71ea784a2fb275df2be66e8448247c128`
+- **Digest obtenido tras publicar:** `sha256:a27ae6d4e1464612ed4acea082739de0973596d50c86ccc5126c10d6632ee085`
+- **Evidencia de autenticación sin llave JSON:** el job `Publish` se autentica con `google-github-actions/auth@v3` usando `WIF_PROVIDER` y `PUBLISHER_SERVICE_ACCOUNT` (OIDC); las credenciales quedan en un archivo temporal (`gha-creds-*.json`) generado por la propia acción para la duración del job, nunca almacenado como secret ni commiteado (está excluido en `.gitignore`/`.dockerignore`).
+
+### 14.3 Revisión candidata
+
+- **Nombre de la revisión:** `incident-api-746934f7`
+- **URL asociada al tag `candidate`:** `https://candidate---incident-api-wr62lcvkua-uc.a.run.app`
+- **Resultado `GET /health`:** `{"status":"ok"}`
+- **Resultado `GET /incidents`:** `[]`
+- **Evidencia de 0% de tráfico antes de la promoción** (`gcloud run services describe incident-api --format="yaml(status.traffic)"`):
+
+  ```yaml
+  status:
+    traffic:
+    - revisionName: incident-api-746934f7
+      tag: candidate
+      url: https://candidate---incident-api-wr62lcvkua-uc.a.run.app
+    - percent: 100
+      revisionName: incident-api-baseline
+  ```
+
+  La revisión candidata no recibe porcentaje de tráfico principal; `incident-api-baseline` conserva el 100%.
+
+### 14.4 Promoción
+
+_Pendiente: se completa al ejecutar `promote.yml`._
+
+### 14.5 Rollback
+
+_Pendiente: se completa al ejecutar `rollback.yml`._
+
+### 14.6 Explicación técnica
+
+_Pendiente._
