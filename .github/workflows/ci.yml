@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   
@@ -70,15 +71,46 @@ jobs:
           path: coverage.xml
           retention-days: 5
 
-
   Container:
     needs: [Lint, Test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write
+    env:
+      IMAGE_URI: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REGISTRY_REPO }}/incident-api:${{ github.sha }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         
+      # Build local (se ejecuta siempre, tanto en PR como en main)
       - name: Build Docker Image
-        run: docker build -t incident-api:${{ github.sha }} .
+        run: docker build -t incident-api:${{ github.sha }} -t $IMAGE_URI .
+
+      # Pasos de punto 9.2, 9.4, 9.5 y 10
+      - name: Authenticate to Google Cloud
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK & Docker auth
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Push Image to Artifact Registry
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          docker push $IMAGE_URI
+
+      - name: Deploy Candidate Revision to Cloud Run
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          gcloud run deploy ${{ vars.SERVICE_NAME }} \
+            --image=$IMAGE_URI \
+            --region=${{ vars.GCP_REGION }} \
+            --no-traffic \
+            --tag=candidate
