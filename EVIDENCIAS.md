@@ -58,7 +58,7 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 - **ID del proyecto GCP:** `lab03-devops`
 - **Captura del presupuesto USD 1**
-![alt text](image.png)
+![captura del presupuesto](image.png)
 - **Service accounts creadas** (`gcloud iam service-accounts list --project=lab03-devops`):
 
   ```
