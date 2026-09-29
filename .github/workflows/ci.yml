@@ -2,7 +2,7 @@ name: CI Pipeline
 
 on:
   push:
-    branches: 
+    branches:
       - main
   pull_request:
     branches:
@@ -10,9 +10,10 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
-  
+
   Lint:
     runs-on: ubuntu-latest
     permissions:
@@ -70,7 +71,6 @@ jobs:
           path: coverage.xml
           retention-days: 5
 
-
   Container:
     needs: [Lint, Test]
     runs-on: ubuntu-latest
@@ -79,6 +79,113 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        
+
       - name: Build Docker Image
         run: docker build -t incident-api:${{ github.sha }} .
+
+  Publish:
+    needs: [Lint, Test, Container]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      digest: ${{ steps.publish.outputs.digest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (publisher)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.PUBLISHER_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        id: publish
+        run: |
+          IMAGE_TAG="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.IMAGE_NAME }}:${{ github.sha }}"
+
+          docker build -t "$IMAGE_TAG" .
+          docker push "$IMAGE_TAG"
+
+          DIGEST="$(
+            gcloud artifacts docker images describe "$IMAGE_TAG" \
+              --format='value(image_summary.digest)'
+          )"
+
+          if [[ -z "$DIGEST" || "$DIGEST" == "null" ]]; then
+            echo "No fue posible obtener el digest de la imagen publicada." >&2
+            exit 1
+          fi
+
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "Imagen publicada: ${IMAGE_TAG}"
+          echo "Digest: ${DIGEST}"
+
+  Deploy:
+    needs: Publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Authenticate to Google Cloud (deployer)
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Deploy candidate revision (no traffic)
+        run: |
+          SHORT_SHA="${GITHUB_SHA:0:8}"
+          IMAGE_REF="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.ARTIFACT_REPOSITORY }}/${{ vars.IMAGE_NAME }}@${{ needs.Publish.outputs.digest }}"
+
+          gcloud run deploy "${{ vars.CLOUD_RUN_SERVICE }}" \
+            --image="$IMAGE_REF" \
+            --region="${{ vars.GCP_REGION }}" \
+            --project="${{ vars.GCP_PROJECT_ID }}" \
+            --service-account="${{ vars.RUNTIME_SERVICE_ACCOUNT }}" \
+            --set-env-vars="STORAGE_BACKEND=firestore,GOOGLE_CLOUD_PROJECT=${{ vars.GCP_PROJECT_ID }}" \
+            --revision-suffix="${SHORT_SHA}" \
+            --no-traffic \
+            --tag=candidate \
+            --quiet
+
+      - name: Resolve candidate URL
+        id: candidate
+        run: |
+          CANDIDATE_URL="$(
+            gcloud run services describe "${{ vars.CLOUD_RUN_SERVICE }}" \
+              --region="${{ vars.GCP_REGION }}" \
+              --project="${{ vars.GCP_PROJECT_ID }}" \
+              --format=json |
+            jq -r '.status.traffic[] | select(.tag == "candidate") | .url'
+          )"
+
+          if [[ -z "$CANDIDATE_URL" || "$CANDIDATE_URL" == "null" ]]; then
+            echo "No fue posible obtener la URL de la revisión candidata." >&2
+            exit 1
+          fi
+
+          echo "url=${CANDIDATE_URL}" >> "$GITHUB_OUTPUT"
+          echo "URL candidata: ${CANDIDATE_URL}"
+
+      - name: Verify /health
+        run: curl --fail --silent --show-error "${{ steps.candidate.outputs.url }}/health"
+
+      - name: Verify /incidents
+        run: curl --fail --silent --show-error "${{ steps.candidate.outputs.url }}/incidents"

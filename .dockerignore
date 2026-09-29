@@ -12,3 +12,4 @@ htmlcov/
 tests/
 README.md
 requirements-dev.txt
+gha-creds-*.json
