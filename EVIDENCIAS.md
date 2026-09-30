@@ -128,13 +128,36 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
   La revisión candidata no recibe porcentaje de tráfico principal; `incident-api-baseline` conserva el 100%.
 
 ### 14.4 Promoción
+- **Enlace a la ejecución de GitHub Actions:** <https://github.com/astrid-esen/lab02-devops/actions/runs/36649752945/job/109680905556>
 
-_Pendiente: se completa al ejecutar `promote.yml`._
+```yaml
+  status:
+    traffic:
+   - percent: 100
+      revisionName: incident-api-b204792f
+      tag: candidate
+      url: https://candidate---incident-api-wr62lcvkua-uc.a.run.app
+```
 
 ### 14.5 Rollback
+- **Enlace a la ejecución de GitHub Actions:** <https://github.com/astrid-esen/lab02-devops/actions/runs/36643930080/job/109662401358>
 
-_Pendiente: se completa al ejecutar `rollback.yml`._
+- **Evidencia JSON de persistencia del incidente:**
+{"id":"INC-7DF49168","title":"Validacion de rollback","description":"Incidente persistente","priority":"low","status":"open","created_at":"2026-09-30T00:14:39.438415Z","resolved_at":null}
+C:\Users\itsis\OneDrive\Desktop\devops y metricas de software\lab02-devops>curl.exe --fail --silent --show-error https://incident-api-wr62lcvkua-uc.a.run.app/incidents
+[{"id":"INC-7DF49168","title":"Validacion de rollback","description":"Incidente persistente","priority":"low","status":"open","created_at":"2026-09-30T00:14:39.438415Z","resolved_at":null}]
+
+
 
 ### 14.6 Explicación técnica
 
-_Pendiente._
+1. **¿Por qué se publica la imagen con el SHA del commit y se despliega mediante digest?**
+   El SHA del commit garantiza la trazabilidad exacta hacia el código fuente. Desplegar mediante digest garantiza la inmutabilidad absoluta. Con esto hacemos que Cloud ejecute mismos bits verificados, evitando posibles alteraciones si un tag es sobreescrito.
+2. **¿Qué diferencia existe entre gha-publisher, gha-deployer e incident-api-runtime?**
+    `gha-publisher` solo puede escribir imágenes en Artifact Registry; `gha-deployer` solo puede modificar el estado de Cloud Run; `incident-api-runtime` es la identidad sin privilegios administrativos que ejecuta la aplicación y accede a Firestore.
+3. **¿Por qué una revisión candidata puede probarse aunque reciba 0 % del tráfico principal?**
+   Porque Cloud Run permite asignar "traffic tags" (como `candidate`) a revisiones específicas. Esto permite aislarlo para revisión.
+4. **¿Por qué el rollback no debe reconstruir una versión anterior?**
+   El reconstruir puede introducir dependencias actualizadas no deseadas o tomar demasiado tiempo. Se debe restaurar el artefacto exacto que ya probó ser funcional.
+5. **¿Por qué el incidente almacenado en Firestore continúa existiendo después del rollback de la aplicación?**
+   Porque la arquitectura separa el cómputo del almacenamiento. Cloud Run es stateless y al restaurar una revisión anterior solo se cambia la versión del código ejecutable, pero Firestore actúa como una base de datos persistente independiente del ciclo de vida del servicio.
