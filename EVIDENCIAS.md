@@ -169,3 +169,6 @@ C:\Users\itsis\OneDrive\Desktop\devops y metricas de software\lab02-devops>curl.
    El reconstruir puede introducir dependencias actualizadas no deseadas o tomar demasiado tiempo. Se debe restaurar el artefacto exacto que ya probó ser funcional.
 5. **¿Por qué el incidente almacenado en Firestore continúa existiendo después del rollback de la aplicación?**
    Porque la arquitectura separa el cómputo del almacenamiento. Cloud Run es stateless y al restaurar una revisión anterior solo se cambia la versión del código ejecutable, pero Firestore actúa como una base de datos persistente independiente del ciclo de vida del servicio.
+
+
+- **nota para hacer el pull request del parcial**
