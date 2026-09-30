@@ -129,7 +129,8 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 ### 14.4 Promoción
 - **Enlace a la ejecución de GitHub Actions:** <https://github.com/astrid-esen/lab02-devops/actions/runs/36649752945/job/109680905556>
-
+- **Revisión promovida:** incident-api-b204792f
+- **Tráfico después de la promoción:** 
 ```yaml
   status:
     traffic:
@@ -141,6 +142,13 @@ depende de ambos (`needs: [Lint, Test]`) y solo corre si los dos terminan con é
 
 ### 14.5 Rollback
 - **Enlace a la ejecución de GitHub Actions:** <https://github.com/astrid-esen/lab02-devops/actions/runs/36643930080/job/109662401358>
+- **Revisión restaurada:** incident-api-baseline
+- **Trafico después del rollback:**
+![alt text](image-1.png)
+- **Evidencia de que el workflow no reconstruyó ni publicó imagen:**
+  El archivo rollback.yml evidencia que solo se utiliza el comando gcloud run services update-traffic y en ningún paso se ejecutan comandos como docker build, docker push o gcloud run deploy."
+- **Resultado `GET /health`:** `{"status":"ok"}`
+- **Resultado `GET /incidents`:** `[]`
 
 - **Evidencia JSON de persistencia del incidente:**
 {"id":"INC-7DF49168","title":"Validacion de rollback","description":"Incidente persistente","priority":"low","status":"open","created_at":"2026-09-30T00:14:39.438415Z","resolved_at":null}
